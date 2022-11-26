@@ -56,12 +56,21 @@ scaled_input = scale_raw_input(raw_input)
 
 
 # Predicting  ---------------------------------------------------------------------------------------------------
-LR = pickle.load(open('LR.pickle', 'rb')) # good at middle part
+try:
+    LR = pickle.load(open('LR.pickle', 'rb')) # good at middle part
+except:
+    pass
 
-SVR_grid = pickle.load(open('SVR_grid.pickle', 'rb'))
+try:
+    SVR_grid = pickle.load(open('SVR_grid.pickle', 'rb'))
+except:
+    pass
 SVR = SVR_grid.best_estimator_ # good around high part
 
-RFR_grid = pickle.load(open('RFR_grid.pickle', 'rb'))
+try:
+    RFR_grid = pickle.load(open('RFR_grid.pickle', 'rb'))
+except:
+    pass
 RFR = RFR_grid.best_estimator_ # good around high part
 
 # CSV UPLOAD EDİP ONU PREDİCT EDELİM Mİ?
