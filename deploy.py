@@ -63,15 +63,15 @@ except:
 
 try:
     SVR_grid = pickle.load(open('SVR_grid.pickle', 'rb'))
+    SVR = SVR_grid.best_estimator_ # good around high part
 except:
     pass
-SVR = SVR_grid.best_estimator_ # good around high part
 
 try:
     RFR_grid = pickle.load(open('RFR_grid.pickle', 'rb'))
+    RFR = RFR_grid.best_estimator_ # good around high part
 except:
     pass
-RFR = RFR_grid.best_estimator_ # good around high part
 
 # CSV UPLOAD EDİP ONU PREDİCT EDELİM Mİ?
 # PREDİCTİON'U 2 ÜZERİ DİYE YAZ
