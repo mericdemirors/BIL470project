@@ -67,7 +67,7 @@ def scale_raw_input_for_NN(data):
     data["9%"] = data["9"] / data["Votes"]
     data["10%"] = data["10"] / data["Votes"]
 
-    data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'WorldwideBox Office']] = np.log2(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'WorldwideBox Office']])
+    data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']] = np.log2(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']])
 
     min_max_scaler = pickle.load(open('MinMaxScaler.pickle', 'rb'))
     data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']]= min_max_scaler.transform(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']])
