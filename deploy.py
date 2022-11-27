@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests, re
 import pickle
 import math 
 SEED = int(math.sqrt(201401004 + 191401009))
@@ -8,27 +9,59 @@ st.write("""# Simple Movie Prediction App\nThis app predicts the movie revenue!"
 st.sidebar.header('Movie information')
 
 
-
 # Taking input ---------------------------------------------------------------------------------------------------
 def user_input_features():
-    input_Year= st.sidebar.selectbox('Year', range(1990, 2023))
-    input_Rating = st.sidebar.slider('Rating', min_value=float(0.0), value=float(5.0), max_value=float(10.0), step=0.1)
-    input_1 = st.sidebar.number_input('Number of votes as 1', value=3000, format="%i")
-    input_2 = st.sidebar.number_input('Number of votes as 2', value=3000, format="%i")
-    input_3 = st.sidebar.number_input('Number of votes as 3', value=3000, format="%i")
-    input_4 = st.sidebar.number_input('Number of votes as 4', value=3000, format="%i")
-    input_5 = st.sidebar.number_input('Number of votes as 5', value=3000, format="%i")
-    input_6 = st.sidebar.number_input('Number of votes as 6', value=3000, format="%i")
-    input_7 = st.sidebar.number_input('Number of votes as 7', value=3000, format="%i")
-    input_8 = st.sidebar.number_input('Number of votes as 8', value=3000, format="%i")
-    input_9 = st.sidebar.number_input('Number of votes as 9', value=3000, format="%i")
-    input_10 = st.sidebar.number_input('Number of votes as 10', value=3000, format="%i")
-    data = {
-        'Year' : input_Year,
-        'Rating' : input_Rating,
-        'Votes' : input_1 + input_2 + input_3 + input_4 + input_5 + input_6 + input_7 + input_8 + input_9 + input_10,
-        '1': input_1, '2': input_2, '3': input_3, '4': input_4, '5': input_5, '6': input_6, '7': input_7, '8': input_8, '9': input_9, '10': input_10}
-    return pd.DataFrame(data, index=[0])
+    input_rating_url = st.text_input("IMDb site Ratings page url")
+    st.write("\n(all other input other than **Year** gets disabled when url is provided. You should input **Year** always.)")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
+    
+    if input_rating_url is None or input_rating_url == "":
+        input_Year= st.sidebar.selectbox('Year', range(1990, 2023))
+        input_Rating = st.sidebar.slider('Rating', min_value=float(0.0), value=float(5.0), max_value=float(10.0), step=0.1)
+        input_1 = st.sidebar.number_input('Number of votes as 1', value=3000, format="%i")
+        input_2 = st.sidebar.number_input('Number of votes as 2', value=3000, format="%i")
+        input_3 = st.sidebar.number_input('Number of votes as 3', value=3000, format="%i")
+        input_4 = st.sidebar.number_input('Number of votes as 4', value=3000, format="%i")
+        input_5 = st.sidebar.number_input('Number of votes as 5', value=3000, format="%i")
+        input_6 = st.sidebar.number_input('Number of votes as 6', value=3000, format="%i")
+        input_7 = st.sidebar.number_input('Number of votes as 7', value=3000, format="%i")
+        input_8 = st.sidebar.number_input('Number of votes as 8', value=3000, format="%i")
+        input_9 = st.sidebar.number_input('Number of votes as 9', value=3000, format="%i")
+        input_10 = st.sidebar.number_input('Number of votes as 10', value=3000, format="%i")
+        data = {
+            'Year' : input_Year,
+            'Rating' : input_Rating,
+            'Votes' : input_1 + input_2 + input_3 + input_4 + input_5 + input_6 + input_7 + input_8 + input_9 + input_10,
+            '1': input_1, '2': input_2, '3': input_3, '4': input_4, '5': input_5, '6': input_6, '7': input_7, '8': input_8, '9': input_9, '10': input_10}
+        return pd.DataFrame(data, index=[0])
+
+    else:
+        try:
+            request_text = requests.get(input_rating_url).text
+            star_votes = re.findall("<div class=\"leftAligned\">(.*?)</div>", request_text)
+            rating = re.findall("span class=\"ipl-rating-star__rating\">(.*?)</span>", request_text)
+            stars = [int(vote.replace(",","")) for vote in star_votes[1:11]]
+
+            input_Year= st.sidebar.selectbox('Year', range(1990, 2023))
+            [input_10, input_9, input_8, input_7, input_6, input_5, input_4, input_3, input_2, input_1] = stars
+            input_Rating = float(rating[0])
+
+            data = {
+                'Year' : input_Year,
+                'Rating' : input_Rating,
+                'Votes' : input_1 + input_2 + input_3 + input_4 + input_5 + input_6 + input_7 + input_8 + input_9 + input_10,
+                '1': input_1, '2': input_2, '3': input_3, '4': input_4, '5': input_5, '6': input_6, '7': input_7, '8': input_8, '9': input_9, '10': input_10}
+
+            return pd.DataFrame(data, index=[0])
+        except:
+            st.write("Pwease input infowmations by hand")
+            st.write("🥺👉👈")
+            raise Exception("*Sowwy, unable to get data fwom pwovided page uwl*😔")
+
+
 # Taking input ---------------------------------------------------------------------------------------------------
 # ############################################################################################################## #
 # ############################################################################################################## #
@@ -239,9 +272,6 @@ try:
 except:
     pass
 # Models  ---------------------------------------------------------------------------------------------------------
-
-
-# CSV UPLOAD EDİP ONU PREDİCT EDELİM Mİ?
 
 #st.subheader("scaled inputs:")
 #st.write(scaled_input)
