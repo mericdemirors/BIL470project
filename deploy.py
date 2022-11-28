@@ -72,7 +72,7 @@ def user_input_features():
         except:
             st.write("Pwease input infowmations by hand")
             st.write("🥺👉👈")
-            raise Exception("*Sowwy, unable to get data fwom pwovided page uwl*😔")
+            raise Exception("Sowwy, unable to get data fwom pwovided page uwl😔")
 
 
 # Taking input ---------------------------------------------------------------------------------------------------
