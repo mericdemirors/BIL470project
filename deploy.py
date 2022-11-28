@@ -9,6 +9,19 @@ st.write("""# Simple Movie Prediction App\nThis app predicts the movie revenue!"
 st.sidebar.header('Movie information')
 
 
+if st.button('need help with url?', on_click=None):
+    img_paths = ["avengers1.png", "avengers2.png", "andreas1.png", "andreas2.png", "i_am_mother1.png", "i_am_mother2.png"]
+    import random
+    img_no = 2*(random.randint(0, len(img_paths)/2-1))
+    
+    from PIL import Image
+    st.image(Image.open(img_paths[img_no]), caption='andreas', width=750)
+    st.image(Image.open(img_paths[img_no+1]), caption='andreas', width=750)
+    if st.button('thanks, I learnd:)', on_click=None):
+        pass        
+else:
+    pass
+
 # Taking input ---------------------------------------------------------------------------------------------------
 def user_input_features():
     input_rating_url = st.text_input("IMDb site Ratings page url")
