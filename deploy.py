@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import requests, re
 import pickle
 import math 
@@ -8,7 +9,7 @@ SEED = int(math.sqrt(201401004 + 191401009))
 st.write("""# Simple Movie Prediction App\nThis app predicts the movie revenue!""")
 st.sidebar.header('Movie information')
 
-
+# images and help with url
 if st.button('need help with url?', on_click=None):
     img_paths = ["avengers1.png", "avengers2.png", "andreas1.png", "andreas2.png", "i_am_mother1.png", "i_am_mother2.png"]
     import random
@@ -22,7 +23,8 @@ if st.button('need help with url?', on_click=None):
 else:
     pass
 
-# Taking input ---------------------------------------------------------------------------------------------------
+
+# taking input
 def user_input_features():
     input_rating_url = st.text_input("IMDb site Ratings page url")
     st.write("\n(all other input other than **Year** gets disabled when url is provided. You should input **Year** always.)")
@@ -72,31 +74,10 @@ def user_input_features():
         except:
             st.write("Pwease input infowmations by hand")
             st.write("🥺👉👈")
-            raise Exception("Sowwy, unable to get data fwom pwovided page uwl😔")
+            raise Exception("*Sowwy, unable to get data fwom pwovided page uwl*😔")
 
 
-# Taking input ---------------------------------------------------------------------------------------------------
-# ############################################################################################################## #
-# ############################################################################################################## #
-# ############################################################################################################## #
-# Scaling input ---------------------------------------------------------------------------------------------------
-def scale_raw_input(raw_input):
-    data = raw_input.copy()
-    import numpy as np
-    year_revenue_dict = {1990: 0.7658344741262136, 1991: 0.6158904723529411, 1992: 0.5810284048958334, 1993: 0.5947457455973276, 1994: 0.5941740310769231, 1995: 0.6217016949917985, 1996: 0.6502561518881119, 1997: 0.6338443119205298, 1998: 0.8677550960544218, 1999: 0.6733860998742138, 2000: 0.7771750025433526, 2001: 0.7466757578888888, 2002: 0.708450799753397, 2003: 0.7759085865470852, 2004: 0.8238424626760563, 2005: 0.782264222, 2006: 0.7498834795081967, 2007: 0.6502655863192183, 2008: 0.7055149379672131, 2009: 0.8754953023278688, 2010: 0.6809290582777777, 2011: 0.9059954949253732, 2012: 0.811775069737705, 2013: 0.8438092751023868, 2014: 0.8119720837606839, 2015: 0.8807708197784809, 2016: 0.82369238359375, 2017: 1.0752321504301077, 2018: 0.8333133838255032, 2019: 0.9456890671153846, 2020: 0.3045369520779221, 2021: 0.9344049581962025, 2022: 0.9695750887288135}
-    data['Year'] = data['Year'].map(year_revenue_dict)
-    data["Rating"] = data["Rating"]/10
-    data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']] = np.log2(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']])
-
-    min_max_scaler = pickle.load(open('MinMaxScaler.pickle', 'rb'))
-    data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']]= min_max_scaler.transform(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']])
-
-    return data
-# Scaling input ---------------------------------------------------------------------------------------------------
-# ############################################################################################################## #
-# ############################################################################################################## #
-# ############################################################################################################## #
-# Scaling input for NNs ------------------------------------------------------------------------------------------
+# scaling input
 def scale_raw_input_for_NN(raw_input):
     data = raw_input.copy()
     import numpy as np
@@ -121,193 +102,39 @@ def scale_raw_input_for_NN(raw_input):
     data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']]= min_max_scaler.transform(data[['Votes', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']])
 
     return data
-# Scaling input for NNs ------------------------------------------------------------------------------------------
-# ############################################################################################################## #
-# ############################################################################################################## #
-# ############################################################################################################## #
-# Setting data ---------------------------------------------------------------------------------------------------
-raw_input = user_input_features()
 
+
+# input display
+raw_input = user_input_features()
 st.subheader('Inputted Movie informations')
 st.write(raw_input)
-
-scaled_input = scale_raw_input(raw_input)
 scaled_input_for_NN = scale_raw_input_for_NN(raw_input)
-# Setting data ---------------------------------------------------------------------------------------------------
-# ############################################################################################################## #
-# ############################################################################################################## #
-# ############################################################################################################## #
-# Models  ---------------------------------------------------------------------------------------------------------
-try:
-    LR = pickle.load(open('LR.pickle', 'rb')) # good at middle part
-except:
-    pass
-
-try:
-    SVR_grid = pickle.load(open('SVR_grid.pickle', 'rb'))
-    SVR = SVR_grid.best_estimator_ # good around high part
-except:
-    pass
-
-try:
-    RFR_grid = pickle.load(open('best_RFR.pickle', 'rb'))
-    RFR = RFR_grid.best_estimator_ # good around high part
-except:
-    pass
-
-try:
-    import warnings
-    warnings.filterwarnings("ignore")
-    import tensorflow
-    from tensorflow import keras;
-    from tensorflow.keras.models import Sequential;
-    from tensorflow.keras.layers import Dense, Dropout;
-    from tensorflow.keras import Input
-
-    model14 = Sequential([Input(shape=(23,))])
-    model14.add(Dense(32, activation="tanh"))
-    model14.add(Dropout(0.2, seed=SEED))
-    model14.add(Dense(64, activation="tanh"))
-    model14.add(Dropout(0.2, seed=SEED))
-    model14.add(Dense(64, activation="tanh"))
-    model14.add(Dense(32, activation="tanh"))
-    model14.add(Dropout(0.2, seed=SEED))
-    model14.add(Dense(13, activation="tanh"))
-    model14.add(Dense(1))
-    model14.compile(optimizer="Adam", loss=["mse", "mae"], metrics=["mae", "mse"])
-    
-    my_callbacks = [tensorflow.keras.callbacks.ModelCheckpoint( filepath = "kerasNN14.h5", monitor = "val_loss", verbose=0, save_best_only = True, save_weights_only = False, mode = "auto", save_freq = "epoch")]
-    model14.load_weights('kerasNN14.h5')
-except:
-    pass
-
-try:
-    import warnings
-    warnings.filterwarnings("ignore")
-    import tensorflow
-    from tensorflow import keras;
-    from tensorflow.keras.models import Sequential;
-    from tensorflow.keras.layers import Dense, Dropout;
-    from tensorflow.keras import Input
-
-    model16 = Sequential([Input(shape=(23,))])
-    model16.add(Dense(32, activation="tanh"))
-    model16.add(Dropout(0.2, seed=SEED))
-    model16.add(Dense(64, activation="tanh"))
-    model16.add(Dropout(0.2, seed=SEED))
-    model16.add(Dense(64, activation="tanh"))
-    model16.add(Dense(32, activation="tanh"))
-    model16.add(Dropout(0.2, seed=SEED))
-    model16.add(Dense(13, activation="tanh"))
-    model16.add(Dense(1))
-    model16.compile(optimizer="Adam", loss=["mse", "mae"], metrics=["mae", "mse"])
-
-    my_callbacks = [tensorflow.keras.callbacks.ModelCheckpoint( filepath = "kerasNN16.h5", monitor = "val_loss", verbose=0, save_best_only = True, save_weights_only = False, mode = "auto", save_freq = "epoch")]
-    model16.load_weights('kerasNN16.h5')
-except:
-    pass
-
-try:
-    import warnings
-    warnings.filterwarnings("ignore")
-    import tensorflow
-    from tensorflow import keras;
-    from tensorflow.keras.models import Sequential;
-    from tensorflow.keras.layers import Dense, Dropout;
-    from tensorflow.keras import Input
-
-    model19 = Sequential([Input(shape=(23,))])
-    model19.add(Dense(32, activation="sigmoid"))
-    model19.add(Dropout(0.2, seed=SEED))
-    model19.add(Dense(64, activation="sigmoid"))
-    model19.add(Dense(64, activation="sigmoid"))
-    model19.add(Dropout(0.2, seed=SEED))
-    model19.add(Dense(64, activation="sigmoid"))
-    model19.add(Dense(32, activation="sigmoid"))
-    model19.add(Dropout(0.2, seed=SEED))
-    model19.add(Dense(13, activation="sigmoid"))
-    model19.add(Dense(1))
-    model19.compile(optimizer="Adam", loss=["mse", "mae"], metrics=["mae", "mse"])
-
-    my_callbacks = [tensorflow.keras.callbacks.ModelCheckpoint( filepath = "kerasNN19.h5", monitor = "val_loss", verbose=0, save_best_only = True, save_weights_only = False, mode = "auto", save_freq = "epoch")]
-    model19.load_weights('kerasNN19.h5')
-except:
-    pass
-
-try:
-    import warnings
-    warnings.filterwarnings("ignore")
-    import tensorflow
-    from tensorflow import keras;
-    from tensorflow.keras.models import Sequential;
-    from tensorflow.keras.layers import Dense, Dropout;
-    from tensorflow.keras import Input
-
-    model20 = Sequential([Input(shape=(23,))])
-    model20.add(Dense(32, activation="sigmoid"))
-    model20.add(Dropout(0.2, seed=SEED))
-    model20.add(Dense(64, activation="sigmoid"))
-    model20.add(Dense(64, activation="sigmoid"))
-    model20.add(Dropout(0.2, seed=SEED))
-    model20.add(Dense(64, activation="sigmoid"))
-    model20.add(Dense(32, activation="sigmoid"))
-    model20.add(Dropout(0.2, seed=SEED))
-    model20.add(Dense(13, activation="sigmoid"))
-    model20.add(Dense(1))
-    model20.compile(optimizer="Adam", loss=["mse", "mae"], metrics=["mae", "mse"])
-
-    my_callbacks = [tensorflow.keras.callbacks.ModelCheckpoint( filepath = "kerasNN20.h5", monitor = "val_loss", verbose=0, save_best_only = True, save_weights_only = False, mode = "auto", save_freq = "epoch"), tensorflow.keras.callbacks.ReduceLROnPlateau( monitor="val_loss", factor=0.3, patience=7, verbose=0, mode="auto", min_delta=0.0001, cooldown=5, min_lr=0)]
-    model20.load_weights('kerasNN20.h5')
-except:
-    pass
-
-try:
-    import warnings
-    warnings.filterwarnings("ignore")
-    import tensorflow
-    from tensorflow import keras;
-    from tensorflow.keras.models import Sequential;
-    from tensorflow.keras.layers import Dense, Dropout;
-    from tensorflow.keras import Input
-
-    model23 = Sequential([Input(shape=(23,))])
-    model23.add(Dense(32, activation="sigmoid"))
-    model23.add(Dropout(0.2, seed=SEED))
-    model23.add(Dense(64, activation="sigmoid"))
-    model23.add(Dense(32, activation="sigmoid"))
-    model23.add(Dropout(0.2, seed=SEED))
-    model23.add(Dense(13, activation="sigmoid"))
-    model23.add(Dense(1))
-    model23.compile(optimizer="Adam", loss=["mse", "mae"], metrics=["mae", "mse"])
-
-    my_callbacks = [tensorflow.keras.callbacks.ModelCheckpoint( filepath = "kerasNN23.h5", monitor = "val_loss", verbose=1, save_best_only = True, save_weights_only = False, mode = "auto", save_freq = "epoch"), tensorflow.keras.callbacks.ReduceLROnPlateau( monitor="val_loss", factor=0.3, patience=7, verbose=1, mode="auto", min_delta=0.0001, cooldown=5, min_lr=0)]
-    model23.load_weights('kerasNN23.h5')
-except:
-    pass
-# Models  ---------------------------------------------------------------------------------------------------------
-
-#st.subheader("scaled inputs:")
-#st.write(scaled_input)
-#st.subheader("scaled inputs for NN:")
-#st.write(scaled_input_for_NN)
 
 
-# Predicting  ---------------------------------------------------------------------------------------------------
-LR_pred = LR.predict(scaled_input)
-SVR_pred = SVR.predict(scaled_input)
-#RFR_pred = RFR.predict(scaled_input)
-model14_pred = model14.predict(scaled_input_for_NN)
-model16_pred = model16.predict(scaled_input_for_NN)
-model19_pred = model19.predict(scaled_input_for_NN)
-model20_pred = model20.predict(scaled_input_for_NN)
-model23_pred = model23.predict(scaled_input_for_NN)
+# predictiong
+from keras.models import load_model
+NN_paths=["kerasNN14_wo_log.h5","kerasNN16_wo_log.h5","kerasNN23_wo_log.h5", "kerasNN24_wo_log.h5", "kerasNNtuner_wo_log-001-24.h5", "kerasNNtuner2_wo_log-001-24.h5", "kerasNNtuner3_wo_log-001-12.h5"]
+sum_prediction = predictors = 0
+for NN_h5 in NN_paths:
+    try:
+        NN = load_model(NN_h5)
+        sum_prediction = sum_prediction + np.log2(NN.predict(scaled_input_for_NN)*100581)
+        predictors = predictors + 1
+    except Exception as e:
+        print(e)
+        
 
-#avg_pred = (LR_pred + SVR_pred + RFR_pred + model14_pred + model16_pred + model19_pred + model20_pred + model23_pred)/8
-avg_pred = (LR_pred + SVR_pred + model14_pred + model16_pred + model19_pred + model20_pred + model23_pred)/7
+# printing
+avg_prediction = sum_prediction / predictors
 
-revenue_pred = 2**(avg_pred[0][0])
+lower_bound = 2**(avg_prediction[0][0]-0.75)
+revenue_pred = 2**(avg_prediction[0][0])
+upper_bound = 2**(avg_prediction[0][0]+0.75)
+
+lower_desired_representation = "{:,.2f}".format(lower_bound)
 desired_representation = "{:,.2f}".format(revenue_pred)
+upper_desired_representation = "{:,.2f}".format(upper_bound)
 
 st.subheader('Prediction')
 st.write("$", desired_representation)
-# Predicting  ---------------------------------------------------------------------------------------------------
+st.write("expected to be between", "$", lower_desired_representation, "-", upper_desired_representation,".")
